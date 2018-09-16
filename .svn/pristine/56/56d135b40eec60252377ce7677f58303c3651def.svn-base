@@ -1,0 +1,61 @@
+
+package main;
+
+import java.util.Observable;
+import java.util.Observer;
+
+import gui.GUIFrame;
+import model.Board;
+import model.TetrisPiece;
+
+/**
+ * PowerPaint Driver.
+ * 
+ * @author Bryce Anderson
+ * @version 05/02/16
+ *
+ */
+public final class Main {
+
+    public static void main(String[] theArgs) {
+
+        //
+
+        //
+        //
+        final GUIFrame runFrame = new GUIFrame();
+        runFrame.start();
+
+        // Board b = new Board();
+
+        // b.addObserver(new Observer ( ) {
+        //
+        // @Override
+        // public void update(Observable theO, Object theArg) {
+        //
+        //// System.out.println(theO);
+        //
+        // if (theArg instanceof String) {
+        // System.out.println(theO);
+        //
+        // }
+        // if (theArg instanceof TetrisPiece) {
+        // System.err.println(theO);
+        // }
+        // else if (theArg instanceof int[]) {
+        // System.out.println(theArg);
+        //
+        // }
+        //// else if (theArg instanceof Boolean) {
+        ////
+        //// }
+        // }
+
+        // });
+        // b.newGame();
+        // for (int i = 0; i < 5; i++) {
+        // b.step();
+        //
+        // }
+    }
+}

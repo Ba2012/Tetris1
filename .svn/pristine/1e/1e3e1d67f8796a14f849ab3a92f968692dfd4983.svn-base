@@ -1,0 +1,567 @@
+/*
+ * TCSS 305 Tetris Spring 2016
+ */
+
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Array;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.Timer;
+import javax.swing.border.TitledBorder;
+
+import model.Board;
+
+import model.Point;
+import model.TetrisPiece;
+
+/**
+ * Makes the frame for the GUI.
+ * 
+ * @author Bryce Anderson
+ * @version 05/20/16
+ *
+ */
+public class GUIFrame implements Observer {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * How long of delay for the timer before it starts.
+     */
+    private static final int MOVE_DELAY = 1000;
+
+    /**
+     * The size of the right panel.
+     */
+    private static final Dimension RIGHT_SIDE = new Dimension(150, 110);
+
+    /**
+     * The size of the score panel.
+     */
+    private static final Dimension SCORE_SIZE = new Dimension(110, 240);
+
+    /**
+     * The full frame size.
+     */
+    private static final Dimension FRAME_SIZE = new Dimension(480, 568);
+
+    /**
+     * The size of the game panel.
+     */
+    private static final Dimension GAME_SIZE = new Dimension(330, 450);
+    /**
+     * Size of the blocks.
+     */
+    private static final int BLOCK_SIZE = 30;
+
+    /**
+     * 
+     */
+    private static final int MY_WINDOW_X = 100;
+
+    /**
+     * 
+     */
+    private static final int MY_WINDOW_Y = 100;
+    /**
+     * Size of the next piece window.
+     */
+    private static final Dimension WINDOW_SIZE = new Dimension(MY_WINDOW_X, MY_WINDOW_Y);
+    /**
+     * The Points of the next piece.
+     */
+    private Point[] myNextPiecePoints;
+
+    /**
+     * The playing board.
+     */
+    private final Board myBoard;
+
+    /**
+     * The tertis piece to use next.
+     */
+    private TetrisPiece myPiece;
+
+    /**
+     * The tetris piece piece observer.
+     */
+
+    // private NextPeiceObserver myPieceWatcher;
+
+    /**
+     * the menu bar.
+     */
+    private final JMenuBar myMenuBar;
+
+    /**
+     * The string board observer.
+     */
+
+    private final MovePiece myKeyListener;
+
+    /**
+     * The score of the current game. Probably will not use.
+     */
+    private int myScore;
+
+    /**
+     * The timer to keep the game moving.
+     */
+    final protected Timer myMoveTimer;
+
+    private String[] myStringBoard;
+
+    private boolean myPauseGame;
+
+    private boolean myGameOver;
+
+    final JFrame myFrame;
+
+    /**
+     * Constructor for the GUIFrame.
+     */
+    public GUIFrame() {
+        super();
+        myFrame = new JFrame("Tetris");
+        myMenuBar = new JMenuBar();
+        myBoard = new Board();
+        myStringBoard = new String[myBoard.getHeight()];
+        myPauseGame = false;
+        myGameOver = true;
+        myMoveTimer = new Timer(MOVE_DELAY, new MoveListener());
+
+        buildFileMenu(myFrame);
+        myFrame.setJMenuBar(myMenuBar);
+
+        myKeyListener = new MovePiece(myBoard, myPauseGame, myGameOver, myMoveTimer, myFrame);
+
+    }
+
+    public void start() {
+
+        myFrame.setPreferredSize(FRAME_SIZE);
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myFrame.add(gamePanel(), BorderLayout.CENTER);
+        myFrame.addKeyListener(new MovePiece(myBoard, myPauseGame, myGameOver, myMoveTimer,
+                                             myFrame));
+        myFrame.add(rightSide(), BorderLayout.WEST);
+
+        startGame();
+        myFrame.pack();
+        myFrame.setResizable(false);
+        // myFrame.setResizable(true);
+        myFrame.setVisible(true);
+        myFrame.requestFocus();
+    }
+
+    /**
+     * Builds the File Menu. The JFrame is being passed so when quit is called
+     * it can close the frame.
+     * 
+     * @param theFrame the JFrame being used.
+     */
+    private void buildFileMenu(final JFrame theFrame) {
+
+        final JMenuItem endGame = new JMenuItem("End Game");
+        final JMenuItem newGame = new JMenuItem("New Game");
+
+        endGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+        final JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        myMenuBar.add(fileMenu);
+
+        newGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        if (myGameOver) {
+
+            newGame.setEnabled(true);
+            endGame.setEnabled(false);
+            
+        }
+        if (!myGameOver) {
+            newGame.setEnabled(false);
+            endGame.setEnabled(true);
+            myGameOver = true;
+        }
+        newGame.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+
+                myGameOver = false;
+                reset();
+                startGame();
+                endGame.setEnabled(true);
+                newGame.setEnabled(false);
+
+            }
+
+        });
+        fileMenu.add(newGame);
+        fileMenu.addSeparator();
+        
+
+        endGame.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+
+                myGameOver = true;
+                endGame.setEnabled(false);
+                newGame.setEnabled(true);
+
+                update(myBoard, true);
+
+            }
+
+        });
+
+        fileMenu.add(endGame);
+        final JMenuItem quit = new JMenuItem("Quit", KeyEvent.VK_Q);
+        quit.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                theFrame.dispose();
+            }
+
+        });
+
+        fileMenu.add(quit);
+
+    }
+
+    private JPanel nextPiecePanel() {
+
+        final JPanel nextPanel = new JPanel();
+        final TitledBorder outSide = new TitledBorder("");
+        nextPanel.setBorder(outSide);
+        nextPanel.setBackground(Color.BLACK);
+        myFrame.setBackground(Color.BLACK);
+
+        final JPanel inside = new JPanel();
+        inside.setPreferredSize(WINDOW_SIZE);
+        inside.setBackground(Color.BLACK);
+        final TitledBorder nextPiece = new TitledBorder("The next piece");
+        inside.setBorder(nextPiece);
+        inside.setOpaque(false);
+
+        nextPiece.setTitleColor(Color.RED);
+        nextPiece.setTitlePosition(TitledBorder.ABOVE_TOP);
+        inside.setBorder(nextPiece);
+        nextPanel.add(inside);
+        nextPanel.setOpaque(false);
+        // nextPanel.se
+
+        return nextPanel;
+    }
+
+    private JPanel rightSide() {
+
+        final JPanel rightSide = new JPanel();
+
+        rightSide.setPreferredSize(RIGHT_SIDE);
+        rightSide.setLayout(new BorderLayout());
+        rightSide.add(directions(), BorderLayout.SOUTH);
+        rightSide.add(nextPiecePanel(), BorderLayout.NORTH);
+        rightSide.add(scoreBoard(), BorderLayout.CENTER);
+        rightSide.setBackground(Color.BLACK);
+        rightSide.setOpaque(true);
+
+        return rightSide;
+    }
+
+    private JPanel scoreBoard() {
+        final JPanel scoreBoard = new JPanel();
+        scoreBoard.setPreferredSize(SCORE_SIZE);
+        final TitledBorder score = new TitledBorder("Score");
+        score.setTitlePosition(TitledBorder.ABOVE_TOP);
+        score.setTitleFont(Font.getFont(Font.MONOSPACED));
+        score.setTitleColor(Color.RED);
+        scoreBoard.setBorder(score);
+        scoreBoard.setBackground(Color.BLACK);
+
+        return scoreBoard;
+    }
+
+    private JPanel directions() {
+
+        final JPanel directionPanel = new JPanel();
+
+        directionPanel.setPreferredSize(SCORE_SIZE);
+        directionPanel.setBackground(Color.BLACK);
+        final TitledBorder directionTitle = new TitledBorder("Directions");
+        directionTitle.setTitlePosition(TitledBorder.ABOVE_TOP);
+        directionTitle.setTitleFont(Font.getFont(Font.MONOSPACED));
+        directionTitle.setTitleColor(Color.RED);
+        directionPanel.setBorder(directionTitle);
+        final JTextArea directions = new JTextArea();
+        directions.setText(directionText());
+        directions.setBackground(Color.BLACK);
+        directions.setFont(Font.getFont(Font.SANS_SERIF));
+        directions.setForeground(Color.RED);
+        directionPanel.add(directions, BorderLayout.CENTER);
+        directions.setEditable(false);
+        return directionPanel;
+    }
+
+    private String directionText() {
+        final StringBuilder builder = new StringBuilder(128);
+        builder.append("Left arrow: left\n" + "Right arrow: right\n" + "Down arrow: down one\n"
+                       + "Space bar: quick drop\nShift: rotate CCW\n"
+                       + "Up arrrow: rotate CW\nPause: P\n"
+                       + "CTR E: End game\n CTR N: New game");
+        return builder.toString();
+    }
+
+    private void startGame() {
+
+        myBoard.addObserver(this);
+        myBoard.newGame();
+
+//        myMoveTimer.start();
+    }
+
+    private JPanel gamePanel() {
+        final GamePanel gamePanel = new GamePanel();
+
+        gamePanel.setPreferredSize(GAME_SIZE);
+        gamePanel.setBackground(Color.BLACK);
+        gamePanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 2));
+        gamePanel.addKeyListener(myKeyListener);
+        gamePanel.requestFocus();
+        return gamePanel;
+
+    }
+
+    private void drawMap(final Graphics2D theGraphics) {
+
+        int topY = 0;
+        for (int y = 5; y < myStringBoard.length; y++) {
+
+            int leftX = 0;
+            for (int x = 1; x < myStringBoard[x].length(); x++) {
+                /*
+                 * draws lines around the blocks. may use later.
+                 */
+                // final Shape block = new Rectangle2D.Double(leftX + 1, topY -
+                // 1,
+                // BLOCK_SIZE * 1.0, BLOCK_SIZE * 1.0);
+                // theGraphics.setPaint(Color.YELLOW);
+                // theGraphics.draw(block);
+                // theGraphics.setPaint(Color.RED);
+                // theGraphics.setPaint(Color.GREEN);
+                // theGraphics.draw3DRect(leftX, topY, BLOCK_SIZE ,
+                // BLOCK_SIZE , true);
+
+                final char letter = myStringBoard[y].charAt(x);
+
+                switch (letter) {
+
+                    case 'J':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fill3DRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE, true);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY-1, BLOCK_SIZE,
+                        // BLOCK_SIZE, true);
+
+                        break;
+
+                    case 'L':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY-1, BLOCK_SIZE,
+                        // BLOCK_SIZE, true);
+                        break;
+
+                    case 'T':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY-1, BLOCK_SIZE + 1,
+                        // BLOCK_SIZE + 1, true);
+                        break;
+
+                    case 'S':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY, BLOCK_SIZE,
+                        // BLOCK_SIZE, true);
+                        break;
+
+                    case '0':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY, BLOCK_SIZE,
+                        // BLOCK_SIZE, true);
+                        break;
+
+                    case 'I':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY, BLOCK_SIZE + 1,
+                        // BLOCK_SIZE + 1, true);
+                        break;
+
+                    case 'Z':
+                        theGraphics.setPaint(Color.WHITE);
+                        theGraphics.fillRect(leftX, topY, BLOCK_SIZE, BLOCK_SIZE);
+                        // theGraphics.setPaint(Color.GREEN);
+                        // theGraphics.draw3DRect(leftX, topY, BLOCK_SIZE + 1,
+                        // BLOCK_SIZE + 1, true);
+                        break;
+                    case ' ':
+                        break;
+
+                    default:
+
+                        break;
+
+                }
+                leftX += 32;
+
+            }
+            topY += 25;
+
+        }
+
+    }
+
+    @Override
+    public void update(final Observable theObservable, final Object theObject) {
+
+        // System.out.println(theObservable);
+        if (theObject instanceof String) {
+
+            myStringBoard = theObject.toString().split("\n");
+            System.out.println(theObject.toString());
+            myFrame.requestFocus();
+
+        }
+
+        if (theObject instanceof TetrisPiece) {
+
+            myPiece = (TetrisPiece) theObject;
+            myNextPiecePoints = myPiece.getPoints();
+            myFrame.requestFocus();
+            // myPieceWatcher = new NextPeiceObserver(myPiece,
+            // myNextPiecePoints);
+
+        }
+
+        if (theObject instanceof Boolean) {
+            myGameOver = (boolean) theObject;
+            myBoard.deleteObserver(this);
+            JOptionPane.showMessageDialog(myFrame, "GAME OVER");
+
+            myGameOver = false;
+            reset();
+            // newGame.setEnabled(true);
+
+        }
+        
+        if (theObject instanceof Array[]) {
+            System.out.println(theObject.toString());
+            System.err.println("a;sdkfha;sdfh;asjdfha;ksdjfha;skdjfhas");
+            
+        }
+
+    }
+
+    private void reset() {
+
+        myBoard.deleteObserver(this);
+
+         myMoveTimer.restart();
+
+    }
+
+    /**
+     * A class that listens for timer events and moves the shape, checking for
+     * the window boundaries and changing direction as appropriate.
+     */
+    private class MoveListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            myBoard.step();
+        }
+    }
+
+    private void drawCurrent(final Graphics theGraphics) {
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (myPiece != null && myNextPiecePoints != null) {
+            for (final Point p : myNextPiecePoints) {
+
+                final Point startPoint = new Point(0, 0);
+                final int x = p.x() + startPoint.x();
+                final int y = p.y() + startPoint.y();
+                g2d.setPaint(Color.BLUE);
+
+                g2d.fill3DRect((int) x, (int) y, BLOCK_SIZE / 2, BLOCK_SIZE / 2, false);
+
+            }
+
+        }
+
+    }
+
+    private class GamePanel extends JPanel {
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -1633631687731572663L;
+
+        /**
+         * Paints the next piece that will fall onto the board.
+         * 
+         * @param theGraphics what will be drawn.
+         */
+        @Override
+        public void paintComponent(final Graphics theGraphics) {
+            super.paintComponent(theGraphics);
+            final Graphics2D g2d = (Graphics2D) theGraphics;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                 RenderingHints.VALUE_ANTIALIAS_ON);
+            drawMap(g2d);
+            drawCurrent(g2d);
+            repaint();
+
+        }
+    }
+
+}

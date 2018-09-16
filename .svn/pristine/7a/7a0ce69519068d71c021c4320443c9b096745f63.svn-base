@@ -1,0 +1,104 @@
+
+package gui;
+
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.Timer;
+
+import model.Board;
+
+public class MovePiece implements KeyListener {
+
+    private final Board myBoard;
+    private boolean myPauseGame;
+    private boolean myGameOver;
+    private Timer myGameTimer;
+    private JFrame myFrame;
+
+    public MovePiece(final Board theBoard, final boolean thePause, final boolean theGame,
+                     final Timer theTimer, final JFrame theFrame) {
+
+        super();
+        myBoard = theBoard;
+        myPauseGame = thePause;
+        myGameOver = theGame;
+        myGameTimer = theTimer;
+        myFrame = theFrame;
+
+    }
+
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+
+        if (!myPauseGame || !myGameOver) {
+            if (theEvent.getKeyCode() == KeyEvent.VK_LEFT) {
+
+                myBoard.left();
+            }
+            else if (theEvent.getKeyCode() == KeyEvent.VK_RIGHT) {
+
+                myBoard.right();
+            }
+
+            else if (theEvent.getKeyCode() == KeyEvent.VK_UP) {
+
+                myBoard.rotateCW();
+            }
+
+            else if (theEvent.getKeyCode() == KeyEvent.VK_DOWN) {
+
+                myBoard.down();
+            }
+
+            else if (theEvent.getKeyCode() == KeyEvent.VK_SPACE) {
+
+                myBoard.drop();
+            }
+            else if (theEvent.getKeyCode() == KeyEvent.VK_SHIFT) {
+
+                myBoard.rotateCCW();
+            }
+            else if (theEvent.getKeyCode() == KeyEvent.VK_P) {
+
+                if (myPauseGame) {
+                    
+                    myPauseGame = false;
+                    JOptionPane.showMessageDialog(myFrame, "Game resumed");
+                    myGameTimer.start();
+//                    myFrame.setFocusable(true);
+//                    myFrame.requestFocus();
+                    
+                    
+                    
+
+                }
+                else {
+                    
+                    myPauseGame = true;
+                    myGameTimer.stop();
+                    JOptionPane.showMessageDialog(myFrame, "Game paused");
+
+                }
+            }
+        }
+
+
+
+    }
+
+    @Override
+    public void keyReleased(final KeyEvent theArgs) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void keyTyped(final KeyEvent theArgs) {
+        // TODO Auto-generated method stub
+
+    }
+
+}

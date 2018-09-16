@@ -1,0 +1,87 @@
+//
+//package gui;
+//
+//import java.awt.Color;
+//import java.awt.Dimension;
+//import java.awt.Graphics;
+//import java.awt.Graphics2D;
+//import java.awt.RenderingHints;
+//
+//import javax.swing.JPanel;
+//import javax.swing.border.TitledBorder;
+//
+//import model.Point;
+//import model.TetrisPiece;
+//
+///**
+// * Observes the board for changes.
+// * 
+// * @author Bryce Anderson
+// * @version 05/23/16
+// *
+// */
+//public class NextPeiceObserver extends JPanel {
+//
+//    /**
+//     * Serial ID.
+//     */
+//    private static final long serialVersionUID = -6137005874069485414L;
+//
+//    /**
+//     * Size of the blocks.
+//     */
+//    private static final int SIZE = 15;
+//
+//    /**
+//     * The next piece to be played.
+//     */
+//    private final TetrisPiece myNextPiece;
+//
+//    /**
+//     * The Points of the next piece.
+//     */
+//    private final Point[] myNextPiecePoints;
+//
+//    /**
+//     * Creates the JPanel to hold the next piece.
+//     */
+//    public NextPeiceObserver(final TetrisPiece thePiece, final Point[] theNextPoint) {
+//        super();
+//        myNextPiece = thePiece;
+//        myNextPiecePoints = theNextPoint;
+//
+//    }
+//
+//    private void drawCurrent(final Graphics theGraphics) {
+//        final Graphics2D g2d = (Graphics2D) theGraphics;
+//        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+//                             RenderingHints.VALUE_ANTIALIAS_ON);
+//
+//        if (myNextPiece != null && myNextPiecePoints != null) {
+//            for (final Point p : myNextPiecePoints) {
+//
+//                g2d.setPaint(Color.BLUE);
+//                System.out.println(p.x() + 10);
+//                System.out.println(p.y() + 10);
+//
+//                g2d.fillRect((int) (p.x()), (int) (p.y()), SIZE, SIZE);
+//
+//            }
+//
+//        }
+//
+//    }
+//
+//    /**
+//     * Paints the next piece that will fall onto the board.
+//     * 
+//     * @param theGraphics what will be drawn.
+//     */
+//    @Override
+//    public void paintComponent(final Graphics theGraphics) {
+//        super.paintComponent(theGraphics);
+//        drawCurrent(theGraphics);
+//
+//    }
+//
+//}
